@@ -1,20 +1,5 @@
 # dashboard.py
 import streamlit as st
-import json
-import os
-
-USER_FILE = "users.json"
-
-# ---------------- USER MANAGEMENT ----------------
-def load_users():
-    if os.path.exists(USER_FILE):
-        with open(USER_FILE, "r") as f:
-            return json.load(f)
-    return {}
-
-def save_users(users):
-    with open(USER_FILE, "w") as f:
-        json.dump(users, f)
 
 # ---------------- STYLING ----------------
 def add_styles():
@@ -44,34 +29,6 @@ def add_styles():
         }
         </style>
     """, unsafe_allow_html=True)
-
-# ---------------- LOGIN / REGISTER ----------------
-def login(users):
-    st.subheader("🔑 Login")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if username in users and users[username] == password:
-            st.session_state["logged_in"] = True
-            st.session_state["username"] = username
-            st.success("✅ Login successful!")
-            st.experimental_rerun()
-        else:
-            st.error("❌ Invalid credentials")
-
-def register(users):
-    st.subheader("📝 Register")
-    new_user = st.text_input("New Username")
-    new_pass = st.text_input("New Password", type="password")
-    if st.button("Register"):
-        if new_user in users:
-            st.error("⚠️ Username already exists!")
-        elif new_user.strip() == "" or new_pass.strip() == "":
-            st.error("⚠️ Please enter valid details!")
-        else:
-            users[new_user] = new_pass
-            save_users(users)
-            st.success("✅ Registration successful! Please login.")
 
 # ---------------- APP MODULES ----------------
 def crop_prediction():
@@ -113,10 +70,9 @@ def helpline():
 # ---------------- DASHBOARD ----------------
 def dashboard():
     st.title("📊 Farmer AI Dashboard")
-    st.write(f"Welcome, **{st.session_state['username']}** 👨‍🌾")
 
     menu = ["Crop Prediction", "Pest Prediction", "Market Trends", 
-            "Cost Allocation", "Guidelines", "Helpline", "Logout"]
+            "Cost Allocation", "Guidelines", "Helpline"]
     choice = st.sidebar.radio("📌 Choose Module", menu)
 
     if choice == "Crop Prediction":
@@ -131,25 +87,11 @@ def dashboard():
         guidelines()
     elif choice == "Helpline":
         helpline()
-    elif choice == "Logout":
-        st.session_state.clear()
-        st.experimental_rerun()
 
 # ---------------- MAIN ----------------
 def main():
     add_styles()
-    st.title("🌱 Farmer AI App")
-
-    users = load_users()
-
-    if "logged_in" not in st.session_state:
-        auth_choice = st.radio("Select Option", ["Login", "Register"])
-        if auth_choice == "Login":
-            login(users)
-        else:
-            register(users)
-    else:
-        dashboard()
+    dashboard()
 
 if __name__ == "__main__":
     main()
