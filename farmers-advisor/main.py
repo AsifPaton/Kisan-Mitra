@@ -1,5 +1,6 @@
 # dashboard.py
 import streamlit as st
+import importlib
 
 # ---------------- STYLING ----------------
 def add_styles():
@@ -30,63 +31,31 @@ def add_styles():
         </style>
     """, unsafe_allow_html=True)
 
-# ---------------- APP MODULES ----------------
-def crop_prediction():
-    st.subheader("🌾 Crop Prediction")
-    soil = st.selectbox("Select Soil Type", ["Clay", "Loam", "Sandy"])
-    season = st.selectbox("Season", ["Kharif", "Rabi", "Zaid"])
-    land_size = st.number_input("Land Size (acres)", 1.0, 1000.0)
-    if st.button("Predict Crop"):
-        st.success(f"✅ Best crop for {soil} soil in {season} season is: **Wheat**")
-
-def pest_prediction():
-    st.subheader("🐛 Pest Prediction")
-    crop = st.selectbox("Crop", ["Wheat", "Rice", "Maize", "Cotton"])
-    if st.button("Predict Pests"):
-        st.warning(f"⚠️ Likely pests for {crop}: Aphids, Stem Borers")
-
-def market_trends():
-    st.subheader("📈 Market Trends")
-    crop = st.selectbox("Select Crop", ["Wheat", "Rice", "Cotton"])
-    if st.button("Get Market Price"):
-        st.info(f"💰 Current average price of {crop}: ₹2500 per quintal")
-
-def cost_allocation():
-    st.subheader("💵 Cost Allocation")
-    crop = st.selectbox("Select Crop", ["Wheat", "Rice", "Maize"])
-    land_size = st.number_input("Land Size (acres)", 1.0, 1000.0)
-    if st.button("Calculate Cost"):
-        st.success(f"✅ Estimated cultivation cost for {crop} on {land_size} acres = ₹{land_size*5000}")
-
-def guidelines():
-    st.subheader("📘 Guidelines & Help")
-    st.write("👉 Use high-yield seeds\n👉 Rotate crops for better soil health\n👉 Use drip irrigation to save water")
-
-def helpline():
-    st.subheader("📞 Helpline")
-    st.write("Call us at: **1800-123-456**")
-    st.write("Email: support@farmerai.com")
-
 # ---------------- DASHBOARD ----------------
 def dashboard():
     st.title("📊 Farmer AI Dashboard")
 
-    menu = ["Crop Prediction", "Pest Prediction", "Market Trends", 
-            "Cost Allocation", "Guidelines", "Helpline"]
-    choice = st.sidebar.radio("📌 Choose Module", menu)
+    menu = {
+        "Crop Prediction": "crop_prediction",
+        "Pest Prediction": "pest_prediction",
+        "Market Trends": "market_trends",
+        "Cost Allocation": "cost_allocation",
+        "Guidelines": "guidelines",
+        "Helpline": "helpline"
+    }
 
-    if choice == "Crop Prediction":
-        crop_prediction()
-    elif choice == "Pest Prediction":
-        pest_prediction()
-    elif choice == "Market Trends":
-        market_trends()
-    elif choice == "Cost Allocation":
-        cost_allocation()
-    elif choice == "Guidelines":
-        guidelines()
-    elif choice == "Helpline":
-        helpline()
+    choice = st.sidebar.radio("📌 Choose Module", list(menu.keys()))
+
+    module_name = menu[choice]
+
+    try:
+        module = importlib.import_module(module_name)
+        if hasattr(module, "app"):   # each file should have app() function
+            module.app()
+        else:
+            st.error(f"⚠️ The file {module_name}.py must define an `app()` function.")
+    except Exception as e:
+        st.error(f"❌ Error loading {module_name}: {e}")
 
 # ---------------- MAIN ----------------
 def main():
